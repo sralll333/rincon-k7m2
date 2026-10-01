@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mis TikToks</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#003F9E">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  /* Same look as the Mis TikToks page: very large text, high contrast */
+  :root { --bg: #F7F8F5; --ink: #101418; --muted: #333B45; --accent: #003F9E; --accent-ink: #FFFFFF; --line: #262D36; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0E1114; --ink: #F5F5F0; --muted: #CDD3DA; --accent: #9CC0FF; --accent-ink: #0A1224; --line: #A7B0BA; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 29px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Verdana, "Segoe UI", sans-serif; line-height: 1.45;
+         padding: 1.2rem 16px 3rem; }
+  main { max-width: 34rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.1rem; }
+  h1 { margin: 0; font-size: 1.6rem; }
+  p { margin: 0; }
+  .btn { display: flex; justify-content: center; align-items: center; min-height: 3.6rem; padding: 0.6rem 1rem;
+         border-radius: 16px; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 1.15rem;
+         text-decoration: none; text-align: center; }
+  ol { margin: 0; padding-left: 1.4rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .box { border: 3px solid var(--line); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+  .muted { color: var(--muted); font-size: 0.85rem; }
+  a:focus-visible { outline: 5px solid #E5A000; outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mis TikToks</h1>
+  <p id="msg">Abriendo…</p>
+  <a class="btn" id="open" href="https://claude.ai/artifact/HuH5h1CK3EDWx5pBm6dTBZ">Abrir Mis TikToks</a>
+  <section class="box" id="install" hidden>
+    <p><b>Para que salga en el menú Compartir de TikTok, instala esta aplicación una vez:</b></p>
+    <ol>
+      <li>Toca los <b>tres puntos</b> de arriba a la derecha de Chrome.</li>
+      <li>Toca <b>Instalar aplicación</b> (o <b>Añadir a pantalla de inicio</b> y luego <b>Instalar</b>).</li>
+      <li>Ya está. En TikTok, toca <b>Compartir</b> y elige <b>Mis TikToks</b>.</li>
+    </ol>
+  </section>
+</main>
+<script>
+(function () {
+  "use strict";
+  var PAGE = "https://claude.ai/artifact/HuH5h1CK3EDWx5pBm6dTBZ";
+  var msg = document.getElementById("msg");
+  var open = document.getElementById("open");
+
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+
+  /* Only a plain #anchor (letters, digits, . _ ~ -) reaches the Mis TikToks page,
+     so the TikTok link is packed into one. The page unpacks it the same way. */
+  function pack(text) {
+    var m;
+    if ((m = text.match(/https?:\/\/(vm|vt)\.tiktok\.com\/([A-Za-z0-9]+)/i))) return m[1].toLowerCase() + "-" + m[2];
+    if ((m = text.match(/tiktok\.com\/t\/([A-Za-z0-9]+)/i))) return "t-" + m[1];
+    if ((m = text.match(/tiktok\.com\/@([A-Za-z0-9._]+)\/(video|photo)\/([0-9]+)/i))) return "tt~" + m[1] + "~" + m[3] + (m[2].toLowerCase() === "photo" ? "~p" : "");
+    return null;
+  }
+
+  var q = new URLSearchParams(location.search);
+  var shared = [q.get("url"), q.get("text"), q.get("title")].filter(Boolean).join(" ");
+  var installed = window.matchMedia("(display-mode: standalone)").matches;
+
+  if (shared) {
+    var code = pack(shared);
+    if (code) {
+      open.href = PAGE + "#" + code;
+      msg.textContent = "Abriendo Mis TikToks para guardar el vídeo…";
+      location.replace(open.href);
+    } else {
+      msg.textContent = "Esto no parece un vídeo de TikTok. Comparte el vídeo desde la aplicación de TikTok.";
+    }
+  } else if (installed) {
+    location.replace(PAGE);
+  } else {
+    msg.textContent = "Desde aquí se abre Mis TikToks.";
+    document.getElementById("install").hidden = false;
+  }
+})();
+</script>
+</body>
+</html>
